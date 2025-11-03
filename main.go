@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"meditrack-backend/cmd"
 )
 
 func main() {
-	fmt.Println("Hello World")
+	cmd.Serve()
 }
