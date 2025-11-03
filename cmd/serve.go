@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	global_router "meditrack-backend/golbel_router"
 	"meditrack-backend/internal/config"
 	"meditrack-backend/internal/database"
 	"net/http"
@@ -20,11 +21,15 @@ func Serve() {
 	defer db.Close()
 
 	// Routes
+
 	mux := http.NewServeMux()
+
+	// Wrap mux with global CORS handler
+	handler := global_router.GlobalRouter(mux)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.Port),
-		Handler:      mux,
+		Handler:      handler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
