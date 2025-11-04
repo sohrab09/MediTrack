@@ -48,6 +48,7 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 
 		// Taking input
 		data := req.Data
+
 		if data.FirstName == "" || data.LastName == "" || data.Email == "" || data.Phone == "" || data.Password == "" {
 			respondJSON(w, http.StatusBadRequest, map[string]interface{}{
 				"success": false,
@@ -55,6 +56,9 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			})
 			return
 		}
+
+		// Default status
+		status := 1 // active
 
 		// Password hashing
 		hashed, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
@@ -68,13 +72,21 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		// DB Query
-		query := `INSERT INTO users (first_name, last_name, phone, email, password, created_at)
-		          VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+		query := `INSERT INTO users (first_name, last_name, phone, email, password, status, created_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
 
 		var id int
+		err = db.QueryRow(
+			query,
+			data.FirstName,
+			data.LastName,
+			data.Phone,
+			data.Email,
+			string(hashed),
+			status,
+			time.Now(),
+		).Scan(&id)
 
-		// Error check
-		err = db.QueryRow(query, data.FirstName, data.LastName, data.Phone, data.Email, string(hashed), time.Now()).Scan(&id)
 		if err != nil {
 			log.Println("❌ Insert error:", err)
 			respondJSON(w, http.StatusBadRequest, map[string]interface{}{
@@ -94,6 +106,7 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 				"last_name":  data.LastName,
 				"phone":      data.Phone,
 				"email":      data.Email,
+				"status":     status,
 				"created_at": time.Now(),
 			},
 		})
