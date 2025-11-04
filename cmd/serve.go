@@ -6,6 +6,8 @@ import (
 	global_router "meditrack-backend/golbel_router"
 	"meditrack-backend/internal/config"
 	"meditrack-backend/internal/database"
+	"meditrack-backend/internal/handlers/login"
+	"meditrack-backend/internal/handlers/register"
 	"net/http"
 	"time"
 )
@@ -14,22 +16,22 @@ func Serve() {
 	// Load config
 	cfg := config.LoadConfig()
 
-	// Connect DB
+	// Connect to DB
 	db := database.ConnectPostgres(cfg)
-	// keep db globally available to handlers package (we'll set it inside database package)
-	_ = db
 	defer db.Close()
 
-	// Routes
-
+	// Create router
 	mux := http.NewServeMux()
+	globalHandler := global_router.GlobalRouter(mux)
 
-	// Wrap mux with global CORS handler
-	handler := global_router.GlobalRouter(mux)
+	// Routes
+	mux.HandleFunc("/api/v1/auth/login", login.LoginHandler(db))
+	mux.HandleFunc("/api/v1/auth/register", register.RegisterHandler(db))
 
+	// Start server
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.Port),
-		Handler:      handler,
+		Handler:      globalHandler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
