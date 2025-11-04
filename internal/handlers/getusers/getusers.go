@@ -3,15 +3,18 @@ package getusers
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"meditrack-backend/internal/models"
 	"net/http"
 )
 
-// Helper to send JSON response
+// respondJSON safely writes JSON response
 func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(payload)
+	if err := json.NewEncoder(w).Encode(payload); err != nil {
+		log.Println("Failed to write JSON response:", err)
+	}
 }
 
 func GetUsers(db *sql.DB) http.HandlerFunc {
@@ -26,8 +29,8 @@ func GetUsers(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// DB Query
-		rows, err := db.Query("SELECT * FROM users")
+		// Query specific columns, excluding password
+		rows, err := db.Query("SELECT id, first_name, last_name, phone, email, created_at FROM users")
 		if err != nil {
 			respondJSON(w, http.StatusInternalServerError, map[string]interface{}{
 				"success": false,
@@ -37,11 +40,10 @@ func GetUsers(db *sql.DB) http.HandlerFunc {
 		}
 		defer rows.Close()
 
-		// Data
 		var users []models.User
 		for rows.Next() {
 			var user models.User
-			if err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Phone, &user.Email, &user.Password, &user.CreatedAt); err != nil {
+			if err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Phone, &user.Email, &user.CreatedAt); err != nil {
 				respondJSON(w, http.StatusInternalServerError, map[string]interface{}{
 					"success": false,
 					"message": "Database error",
@@ -50,6 +52,17 @@ func GetUsers(db *sql.DB) http.HandlerFunc {
 			}
 			users = append(users, user)
 		}
+
+		// Check for rows iteration errors
+		if err = rows.Err(); err != nil {
+			respondJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"success": false,
+				"message": "Error reading rows",
+			})
+			return
+		}
+
+		// Success response
 		respondJSON(w, http.StatusOK, map[string]interface{}{
 			"success": true,
 			"data":    users,

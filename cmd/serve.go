@@ -6,6 +6,7 @@ import (
 	global_router "meditrack-backend/golbel_router"
 	"meditrack-backend/internal/config"
 	"meditrack-backend/internal/database"
+	"meditrack-backend/internal/handlers/getuser"
 	"meditrack-backend/internal/handlers/getusers"
 	"meditrack-backend/internal/handlers/login"
 	"meditrack-backend/internal/handlers/register"
@@ -29,6 +30,7 @@ func Serve() {
 	mux.HandleFunc("/api/v1/auth/login", login.LoginHandler(db))
 	mux.HandleFunc("/api/v1/auth/register", register.RegisterHandler(db))
 	mux.HandleFunc("/api/v1/users", getusers.GetUsers(db))
+	mux.HandleFunc("/api/v1/user", getuser.GetUser(db))
 
 	// Start server
 	srv := &http.Server{
