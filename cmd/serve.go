@@ -10,6 +10,7 @@ import (
 	"meditrack-backend/internal/handlers/getuser"
 	"meditrack-backend/internal/handlers/getusers"
 	"meditrack-backend/internal/handlers/login"
+	medicinecategories "meditrack-backend/internal/handlers/medicine_categories"
 	"meditrack-backend/internal/handlers/register"
 	"net/http"
 	"time"
@@ -33,6 +34,9 @@ func Serve() {
 	mux.HandleFunc("/api/v1/users", getusers.GetUsers(db))
 	mux.HandleFunc("/api/v1/user", getuser.GetUser(db))
 	mux.HandleFunc("/api/v1/user/delete", deleteuser.DeleteUser(db))
+
+	// Routes for Medicine Categories
+	mux.HandleFunc("/api/v1/medicine_categories", medicinecategories.CreateMedicineCategories(db))
 
 	// Start server
 	srv := &http.Server{
