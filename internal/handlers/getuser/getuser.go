@@ -7,7 +7,6 @@ import (
 	"net/http"
 )
 
-// Helper to send JSON response
 func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -17,7 +16,6 @@ func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
 func GetUser(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// Method check
 		if r.Method != http.MethodGet {
 			respondJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{
 				"success": false,
@@ -26,8 +24,8 @@ func GetUser(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// Get ID from query param
-		id := r.URL.Query().Get("id")
+		// Extract `{id}` from URL path
+		id := r.PathValue("id")
 		if id == "" {
 			respondJSON(w, http.StatusBadRequest, map[string]interface{}{
 				"success": false,
@@ -36,7 +34,6 @@ func GetUser(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// DB Query - retrieve a single user
 		var user models.User
 		err := db.QueryRow(
 			"SELECT id, first_name, last_name, phone, email, created_at FROM users WHERE id=$1",
@@ -59,7 +56,6 @@ func GetUser(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// Respond with user info
 		respondJSON(w, http.StatusOK, map[string]interface{}{
 			"success": true,
 			"data":    user,
