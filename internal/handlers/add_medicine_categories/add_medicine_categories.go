@@ -1,4 +1,4 @@
-package medicinecategories
+package addmedicinecategories
 
 import (
 	"database/sql"

@@ -5,12 +5,12 @@ import (
 	global_router "meditrack-backend/golbel_router"
 	"meditrack-backend/internal/config"
 	"meditrack-backend/internal/database"
+	addmedicinecategories "meditrack-backend/internal/handlers/add_medicine_categories"
 	deleteuser "meditrack-backend/internal/handlers/delete-user"
 	getmedicinecategories "meditrack-backend/internal/handlers/get_medicine_categories"
 	"meditrack-backend/internal/handlers/getuser"
 	"meditrack-backend/internal/handlers/getusers"
 	"meditrack-backend/internal/handlers/login"
-	medicinecategories "meditrack-backend/internal/handlers/medicine_categories"
 	"meditrack-backend/internal/handlers/register"
 	"net/http"
 	"time"
@@ -72,7 +72,7 @@ func Serve() {
 	mux.HandleFunc("DELETE /api/v1/users/{id}", deleteuser.DeleteUser(db))
 
 	// Medicine Categories
-	mux.HandleFunc("POST /api/v1/medicine-categories", medicinecategories.CreateMedicineCategories(db))
+	mux.HandleFunc("POST /api/v1/medicine-categories", addmedicinecategories.CreateMedicineCategories(db))
 	mux.HandleFunc("GET /api/v1/medicine-categories", getmedicinecategories.GetMedicineCategories(db))
 
 	srv := &http.Server{
